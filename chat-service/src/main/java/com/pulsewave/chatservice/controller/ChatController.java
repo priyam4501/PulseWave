@@ -1,10 +1,11 @@
 package com.pulsewave.chatservice.controller;
 
 import com.pulsewave.chatservice.dto.ChatMessage;
+import com.pulsewave.chatservice.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -12,21 +13,22 @@ import org.springframework.stereotype.Controller;
 @Slf4j
 public class ChatController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ChatService chatService;
 
     @MessageMapping("/chat")
-    public void sendMessage(ChatMessage message) {
+
+    @SendTo("/topic/messages")
+    public ChatMessage sendMessage(ChatMessage message) {
 
         log.info(
-                "Message received from {} to {}",
+                "Message received from {} to {} : {}",
                 message.getSender(),
-                message.getReceiver()
+                message.getReceiver(),
+                message.getContent()
         );
 
-        messagingTemplate.convertAndSendToUser(
-                message.getReceiver(),
-                "/queue/messages",
-                message
-        );
+        chatService.saveMessage(message);
+
+        return message;
     }
 }

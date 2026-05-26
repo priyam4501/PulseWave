@@ -27,7 +27,6 @@ public class WebSocketConfig
     ) {
 
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+                .setAllowedOriginPatterns("*");
     }
 }
