@@ -16,6 +16,13 @@ spring:
           predicates:
             - Path=/auth/**
 
+        - id: chat-service
+
+          uri: lb://CHAT-SERVICE
+
+          predicates:
+            - Path=/chat/**
+
 eureka:
   instance:
     hostname: localhost
@@ -29,3 +36,6 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET}
