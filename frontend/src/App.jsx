@@ -1,166 +1,64 @@
-import { useEffect, useRef, useState } from "react";
-import { Client } from "@stomp/stompjs";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate
+} from "react-router-dom";
+
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/Dashboard";
+import ChatPage from "./pages/ChatPage";
+
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
 
-  const stompClientRef = useRef(null);
+    return (
 
-  const [sender, setSender] = useState("");
-  const [receiver, setReceiver] = useState("");
-  const [message, setMessage] = useState("");
+        <BrowserRouter>
 
-  const [messages, setMessages] = useState([]);
+            <Routes>
 
-  useEffect(() => {
+                <Route
+                    path="/"
+                    element={
+                        <Navigate to="/login" />
+                    }
+                />
 
-    const client = new Client({
+                <Route
+                    path="/login"
+                    element={<LoginPage />}
+                />
 
-      brokerURL: "ws://localhost:8084/ws",
+                <Route
+                    path="/register"
+                    element={<RegisterPage />}
+                />
 
-      debug: (str) => {
-        console.log(str);
-      },
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <DashboardPage />
+                        </ProtectedRoute>
+                    }
+                />
 
-      reconnectDelay: 5000,
+                <Route
+                    path="/chat"
+                    element={
+                        <ProtectedRoute>
+                            <ChatPage />
+                        </ProtectedRoute>
+                    }
+                />
 
-      onConnect: () => {
+            </Routes>
 
-        console.log("Connected to WebSocket");
-
-        client.subscribe(
-          "/topic/messages",
-          (payload) => {
-
-            const receivedMessage =
-              JSON.parse(payload.body);
-
-            console.log(receivedMessage);
-
-            setMessages((prev) => [
-              ...prev,
-              receivedMessage
-            ]);
-          }
-        );
-      },
-
-      onStompError: (frame) => {
-
-        console.error(
-          "Broker error:",
-          frame.headers["message"]
-        );
-      },
-
-      onWebSocketError: (error) => {
-
-        console.error(
-          "WebSocket Error:",
-          error
-        );
-      }
-    });
-
-    client.activate();
-
-    stompClientRef.current = client;
-
-    return () => {
-
-      if (stompClientRef.current) {
-        stompClientRef.current.deactivate();
-      }
-    };
-
-  }, []);
-
-  const sendMessage = () => {
-
-    if (!stompClientRef.current) {
-      return;
-    }
-
-    const chatMessage = {
-      sender,
-      receiver,
-      content: message
-    };
-
-    stompClientRef.current.publish({
-
-      destination: "/app/chat",
-
-      body: JSON.stringify(chatMessage)
-    });
-
-    setMessage("");
-  };
-
-  return (
-
-    <div style={{ padding: "20px" }}>
-
-      <h1>PulseWave Chat</h1>
-
-      <input
-        type="text"
-        placeholder="Sender"
-        value={sender}
-        onChange={(e) =>
-          setSender(e.target.value)
-        }
-      />
-
-      <br /><br />
-
-      <input
-        type="text"
-        placeholder="Receiver"
-        value={receiver}
-        onChange={(e) =>
-          setReceiver(e.target.value)
-        }
-      />
-
-      <br /><br />
-
-      <input
-        type="text"
-        placeholder="Message"
-        value={message}
-        onChange={(e) =>
-          setMessage(e.target.value)
-        }
-      />
-
-      <br /><br />
-
-      <button onClick={sendMessage}>
-        Send
-      </button>
-
-      <hr />
-
-      <h2>Messages</h2>
-
-      {
-
-        messages.map((msg, index) => (
-
-          <div key={index}>
-
-            <strong>
-              {msg.sender}
-            </strong>
-
-            : {msg.content}
-
-          </div>
-        ))
-      }
-
-    </div>
-  );
+        </BrowserRouter>
+    );
 }
 
 export default App;
